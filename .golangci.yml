@@ -1,0 +1,56 @@
+version: "2"
+run:
+  timeout: 5m
+linters:
+  default: all
+  disable:
+    - depguard
+    - err113
+    - exhaustruct
+    - forbidigo
+    - funcorder
+    - funlen
+    - gochecknoglobals
+    - gocognit
+    - gocyclo
+    - godox
+    - maintidx
+    - mnd
+    - nestif
+    - nlreturn
+    - noctx
+    - noinlineerr
+    - varnamelen
+    - wrapcheck
+    - wsl
+    - wsl_v5
+  settings:
+    cyclop:
+      max-complexity: 16
+    gosec:
+      excludes:
+        - G115
+        - G204
+  exclusions:
+    generated: lax
+    #presets:
+      #- comments
+      #- common-false-positives
+      #- legacy
+      #- std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
