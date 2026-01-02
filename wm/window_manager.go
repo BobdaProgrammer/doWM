@@ -656,19 +656,8 @@ func (wm *WindowManager) pointerToWindow(window xproto.Window) error {
 func (wm *WindowManager) Run() { //nolint:cyclop
 	fmt.Println("window manager up and running")
 
-	// get autostart
-	user, err := user.Current()
-	if err == nil {
-		scriptPath := filepath.Join(user.HomeDir, ".config", "doWM", "autostart.sh")
-
-		if fileExists(scriptPath) {
-			fmt.Println("autostart exists..., running")
-			_ = exec.Command(scriptPath).Start()
-		}
-	}
-
 	// basically asks the X server for WM access
-	err = xproto.ChangeWindowAttributesChecked(
+	err := xproto.ChangeWindowAttributesChecked(
 		wm.conn,
 		wm.root,
 		xproto.CwEventMask,
@@ -710,6 +699,16 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 		}
 	}()
 
+	// get autostart
+	user, err := user.Current()
+	if err == nil {
+		scriptPath := filepath.Join(user.HomeDir, ".config", "doWM", "autostart.sh")
+
+		if fileExists(scriptPath) {
+			fmt.Println("autostart exists..., running")
+			_ = exec.Command(scriptPath).Start()
+		}
+	}
 	// for things like polybar, to show workspaces
 	wm.broadcastWorkspace(0)
 	wm.broadcastWorkspaceCount()
