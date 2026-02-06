@@ -1178,6 +1178,9 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 							}
 						case "force-quit":
 							// force close
+							if wm.windows[ev.Child] == nil {
+								break
+							}
 							err := xproto.DestroyWindowChecked(wm.conn, wm.windows[ev.Child].id).Check()
 							if err != nil {
 								fmt.Println("Couldn't force destroy:", err)
