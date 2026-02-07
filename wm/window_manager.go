@@ -901,7 +901,7 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 				}
 			}
 
-			if startmon != endmon {
+			if endmon != nil && startmon != endmon {
 				orx := wm.windows[ev.Child].X - int(startmon.X)
 				ory := wm.windows[ev.Child].Y - int(startmon.Y)
 				wm.currMonitor.CurrWorkspace.windowList = append(wm.currMonitor.CurrWorkspace.windowList, &Window{
