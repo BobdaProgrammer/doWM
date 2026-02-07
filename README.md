@@ -58,11 +58,11 @@ cd doWM
 go build -o ./doWM
 make install config
 ```
-`make install config` will install doWM and move an an example config into the config folder, you can just run make install and write your own from scratch but the example config is a good place to start
+`make install config` will install doWM and move an example config into the config folder, you can just run make install and write your own from scratch but the example config is a good place to start
 
 -------------
 
-This is incase you just run `make install`, it is what you can use to copy the default config into the folder
+This is in case you just run `make install`, it is what you can use to copy the default config into the folder
 ```
 mkdir ~/.config/doWM
 cp -r ./exampleConfig/* ~/.config/doWM/
@@ -86,12 +86,12 @@ You have a few general options:
 - outer-gap (gap from edge of tiling space to windows)
 - gaps (pixel gaps in tiling)
 - resize-amount (the amount of pixels by which a window will increase/decrease with each resize)
-- auto-reload (wether the WM should auto reload the config when changes are made, the config will not auto update if errors are present)
+- auto-reload (whether the WM should auto reload the config when changes are made, the config will not auto update if errors are present)
 - default-tiling (if true, tiling will be enabled on start)
 - auto-fullscreen (if true, windows will auto fullscreen when they request)
 - mod-key (which key should be used for all wm commands)
 - border-width (border width of windows)
-- unactive-border-color (the color for the border of unactive windows
+- unactive-border-color (the color for the border of unactive windows)
 - active-border-color (the color for the border of an active window)
 - workspace-auto-back-and-forth (whether switching to the current workspace number switches to the previous workspace, default is false)
 

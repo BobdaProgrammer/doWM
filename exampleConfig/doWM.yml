@@ -7,7 +7,7 @@ gaps: 10
 # the amount the window will be resized with the keybinds
 resize-amount: 5
 
-# wether the WM should auto reload the config when changes are made, (if there is an error in the config, it will keep the old config and not auto update)
+# whether the WM should auto reload the config when changes are made, (if there is an error in the config, it will keep the old config and not auto update)
 auto-reload: true
 
 # the mod key used for all window manager actions
@@ -41,7 +41,7 @@ active-border-color: 0xed8796
 #   - x: 0
 #     y: 1080
 
-# Completely new layout system, you can have multiple layouts for different numbers of windows, if a layout isnt supported, it will just add a window ontop of the rest that are tiled to be moved somewhere else
+# Completely new layout system, you can have multiple layouts for different numbers of windows, if a layout isn't supported, it will just add a window on top of the rest that are tiled to be moved somewhere else
 # layouts are specified like:
 # - <WINDOW_NUM>:
 #   - windows: # the first layout for that window number
@@ -53,7 +53,7 @@ active-border-color: 0xed8796
 #       y:
 #       width:
 #       height:
-#       
+#
 #       # and so on...
 #   - windows: # the next layout for that window number
 # - <NEXT_WINDOW_NUM>:
@@ -167,7 +167,7 @@ layouts:
       - x: 0.25
         y: 0.0
         width: 0.25
-        height: 1.0 
+        height: 1.0
       - x: 0.5
         y: 0.0
         width: 0.25
@@ -175,7 +175,7 @@ layouts:
       - x: 0.75
         y: 0.0
         width: 0.25
-        height: 1.0 
+        height: 1.0
     - windows: # 4 windows
       - x: 0.0
         y: 0.0
@@ -211,7 +211,7 @@ layouts:
         width: 1.0
         height: 0.333333333
 
-  - 5:      
+  - 5:
     - windows: # 5 windows
       - x: 0.0
         y: 0.0
@@ -327,7 +327,7 @@ layouts:
         width: 0.5
         height: 0.25
   - 9:
-    - windows: # 10 windows:
+    - windows: # 9 windows:
       - x: 0.0
         y: 0.0
         width: 0.25
@@ -410,7 +410,7 @@ layouts:
 # keybindings
 # follow this pattern
 # a key (can't be multiple) in lowercase
-# wether the kebybind is with shift
+# whether the keybind is with shift
 # either a command to exec or a role in the window manager
 # roles are:
 # - quit = gracefully close a window
@@ -422,9 +422,9 @@ layouts:
 # - focus-window-left = focus the previous window in a tiling layout
 # - focus-window-right = focus the next window in a tiling layout
 # - reload-config = reload the config (not autostart.sh)
-# - increase-gap = increase the gap between tiling windows (not perminent so resets next session)
-# - decrease gap = decrease the gap between tiling windows (also not perminent)
-# - detach-tiling = make a workspace's tiling seperate from the global tiling, so it could be floating while the other workspaces are tiling, this is toggling, so if it is detached it will attach, otherwise it will detach
+# - increase-gap = increase the gap between tiling windows (not permanent so resets next session)
+# - decrease gap = decrease the gap between tiling windows (also not permanent)
+# - detach-tiling = make a workspace's tiling separate from the global tiling, so it could be floating while the other workspaces are tiling, this is toggling, so if it is detached it will attach, otherwise it will detach
 # - next-layout = switch to the next layout for the current window number
 keybinds:
   - key: "w"
