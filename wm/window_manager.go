@@ -1280,6 +1280,10 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 									}
 								}
 							}
+						case "focus-workspace-left":
+							wm.switchWorkspace(wm.currMonitor.workspaceIndex - 1)
+						case "focus-workspace-right":
+							wm.switchWorkspace(wm.currMonitor.workspaceIndex + 1)
 						case "reload-config":
 							cfg := wm.createConfig(false)
 							wm.config = cfg
@@ -2119,7 +2123,7 @@ func (wm *WindowManager) broadcastWorkspace(num int) {
 }
 
 func (wm *WindowManager) switchWorkspace(workspace int) {
-	if workspace > len(wm.currMonitor.Workspaces) {
+	if workspace < 0 || workspace >= len(wm.currMonitor.Workspaces) {
 		return
 	}
 

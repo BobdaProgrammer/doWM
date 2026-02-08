@@ -421,6 +421,8 @@ layouts:
 # - swap-window-right = swap a window with the next window in a tiling layout
 # - focus-window-left = focus the previous window in a tiling layout
 # - focus-window-right = focus the next window in a tiling layout
+# - focus-workspace-left = focus the previous workspace
+# - focus-workspace-right = focus the next workspace
 # - reload-config = reload the config (not autostart.sh)
 # - increase-gap = increase the gap between tiling windows (not permanent so resets next session)
 # - decrease gap = decrease the gap between tiling windows (also not permanent)
