@@ -73,7 +73,7 @@ chmod +x ~/.config/doWM/autostart.sh
 > Make sure to look through the config, to alter startup programs and keybinds so that you can use doWM out of the box
 
 > [!NOTE]
-> To logout, use the `quit-wm` role (bound to modkey+q in the example config)
+> To logout, use the `quit-wm` role (bound to modkey+q in the example config) or running `kill $(pgrep -o doWM)`
 
 ## Configuration
 doWM is configured with `~/.config/doWM/doWM.yml` and `~/.config/doWM/autostart.sh`
