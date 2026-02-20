@@ -73,7 +73,7 @@ chmod +x ~/.config/doWM/autostart.sh
 > Make sure to look through the config, to alter startup programs and keybinds so that you can use doWM out of the box
 
 > [!NOTE]
-> To logout, I suggest you use `kill $(pgrep -o doWM)`
+> To logout, use the `quit-wm` role (bound to modkey+q in the example config)
 
 ## Configuration
 doWM is configured with `~/.config/doWM/doWM.yml` and `~/.config/doWM/autostart.sh`
@@ -174,6 +174,7 @@ each keybind either executes a command or plays a role in the wm. Here are all t
 - move-x-right (moves window to the right)
 - move-y-up (moves window up)
 - move-y-down (moves window down)
+- quit-wm (quits doWM)
 
 each keybind also has a key and a shift option, key is the character of the key (can also be things like "f1" "space" or "return") and shift is a bool for if shift should be pressed or not to register.
 

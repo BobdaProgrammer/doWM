@@ -517,3 +517,6 @@ keybinds:
   - key: "l"
     shift: true
     role: "move-x-right"
+  - key: "q"
+    shift: false
+    role: "quit-wm"
