@@ -425,6 +425,31 @@ func getKeycodeForKeysym(conn *xgb.Conn, keysym uint32) xproto.Keycode {
 	}
 	return 0
 }
+func getKeycodesForKeysym(conn *xgb.Conn, keysym uint32) []xproto.Keycode {
+	setup := xproto.Setup(conn)
+	firstKeycode := setup.MinKeycode
+	lastKeycode := setup.MaxKeycode
+	count := lastKeycode - firstKeycode + 1
+
+	keymap, err := xproto.GetKeyboardMapping(conn, firstKeycode, uint8(count)).Reply()
+	if err != nil {
+		slog.Error("failed to get keyboard mapping", "error", err)
+		return nil
+	}
+
+	targetKeysym := xproto.Keysym(keysym)
+	var keycodes []xproto.Keycode
+	for kc := firstKeycode; kc <= lastKeycode; kc++ {
+		offset := int(kc-firstKeycode) * int(keymap.KeysymsPerKeycode)
+		for i := range int(keymap.KeysymsPerKeycode) {
+			if keymap.Keysyms[offset+i] == targetKeysym {
+				keycodes = append(keycodes, kc)
+				break // only need to find the keysym once per keycode
+			}
+		}
+	}
+	return keycodes
+}
 
 // Converts a keysym (layout-agnostic symbol like XK_b) to a keycode (layout-specific)
 func keysymToKeycode(conn *xgb.Conn, target xproto.Keysym) (xproto.Keycode, error) {
@@ -451,7 +476,17 @@ func keysymToKeycode(conn *xgb.Conn, target xproto.Keysym) (xproto.Keycode, erro
 
 // gets keycode of key and sets it, then tells the X server to notify us when this keybind is pressed.
 func (wm *WindowManager) createKeybind(kb *Keybind) Keybind {
-	code := keybind.StrToKeycodes(XUtil, kb.Key)
+	keysym, ok := Keysyms[kb.Key]
+	if !ok {
+		return Keybind{
+			Keycode: 0,
+			Key:     "",
+			Shift:   false,
+			Exec:    "",
+		}
+	}
+	KeyCode := getKeycodeForKeysym(wm.conn, uint32(keysym))
+	/*code := keybind.StrToKeycodes(XUtil, kb.Key)
 	if len(code) < 1 {
 		return Keybind{
 			Keycode: 0,
@@ -460,11 +495,14 @@ func (wm *WindowManager) createKeybind(kb *Keybind) Keybind {
 			Exec:    "",
 		}
 	}
-	KeyCode := code[0]
+	KeyCode := code[0]*/
 	kb.Keycode = uint32(KeyCode)
 	Mask := wm.mod
 	if kb.Shift {
 		Mask |= xproto.ModMaskShift
+	}
+	if len(kb.Key) >= 2 && kb.Key[0:2] == "XF" {
+		Mask = 0
 	}
 	err := xproto.GrabKeyChecked(wm.conn, true, wm.root, Mask, KeyCode, xproto.GrabModeAsync, xproto.GrabModeAsync).
 		Check()
@@ -1025,11 +1063,14 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 		case xproto.KeyPressEvent:
 			fmt.Println("keyPress")
 			// if mod key is down
-			if ev.State&mMask != 0 {
+			if true {
 				// go through keybinds if the keybind matches up to the current event then continue
 				for _, kb := range wm.config.Keybinds {
-					if ev.Detail == xproto.Keycode(kb.Keycode) && (ev.State&(mMask|xproto.ModMaskShift) ==
-						(mMask | xproto.ModMaskShift) == kb.Shift) {
+					if ev.Detail == xproto.Keycode(kb.Keycode) {
+						fmt.Println(int(ev.Detail), kb.Key)
+					}
+					if ev.Detail == xproto.Keycode(kb.Keycode) && ((ev.State&(mMask|xproto.ModMaskShift) ==
+						(mMask | xproto.ModMaskShift) == kb.Shift) || (len(kb.Key) >= 2 && kb.Key[0:2] == "XF")) {
 						// if it has an exec then just execute it
 						if kb.Exec != "" {
 							fmt.Println("executing:", kb.Exec)
