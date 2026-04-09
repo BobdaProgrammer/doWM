@@ -442,7 +442,7 @@ func getKeycodesForKeysym(conn *xgb.Conn, keysym uint32) []xproto.Keycode {
 	for kc := firstKeycode; kc <= lastKeycode; kc++ {
 		offset := int(kc-firstKeycode) * int(keymap.KeysymsPerKeycode)
 		for i := range int(keymap.KeysymsPerKeycode) {
-			if keymap.Keysyms[offset+i] == targetKeysym {
+			if offset+i < len(keymap.Keysyms) && keymap.Keysyms[offset+i] == targetKeysym {
 				keycodes = append(keycodes, kc)
 				break // only need to find the keysym once per keycode
 			}
@@ -485,18 +485,23 @@ func (wm *WindowManager) createKeybind(kb *Keybind) Keybind {
 			Exec:    "",
 		}
 	}
-	KeyCode := getKeycodeForKeysym(wm.conn, uint32(keysym))
-	/*code := keybind.StrToKeycodes(XUtil, kb.Key)
-	if len(code) < 1 {
-		return Keybind{
-			Keycode: 0,
-			Key:     "",
-			Shift:   false,
-			Exec:    "",
+	KeyCodes := getKeycodesForKeysym(wm.conn, uint32(keysym))
+	for i, KeyCode := range KeyCodes {
+		keybind := *kb
+		keybind.Keycode = uint32(KeyCode)
+		wm.grabKey(keybind, KeyCode)
+
+		if i == 0 {
+			kb = &keybind
+		} else {
+			wm.config.Keybinds = append(wm.config.Keybinds, keybind)
 		}
 	}
-	KeyCode := code[0]*/
-	kb.Keycode = uint32(KeyCode)
+
+	return *kb
+}
+
+func (wm *WindowManager) grabKey(kb Keybind, KeyCode xproto.Keycode) {
 	Mask := wm.mod
 	if kb.Shift {
 		Mask |= xproto.ModMaskShift
@@ -539,8 +544,6 @@ func (wm *WindowManager) createKeybind(kb *Keybind) Keybind {
 	if err != nil {
 		slog.Error("Couldn't create keybind", "error:", err)
 	}
-
-	return *kb
 }
 
 func (wm *WindowManager) reload(focused xproto.ButtonPressEvent) {
