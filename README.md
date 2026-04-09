@@ -178,7 +178,7 @@ each keybind either executes a command or plays a role in the wm. Here are all t
 - move-y-down (moves window down)
 - quit-wm (quits doWM)
 
-each keybind also has a key and a shift option, key is the character of the key (can also be things like "f1" "space" or "return") and shift is a bool for if shift should be pressed or not to register.
+each keybind also has a key and a shift option, key is the character of the key (can also be things like "f1", "space", "return" or even XF86 keys like "XF86AudioPlay) and shift is a bool for if shift should be pressed or not to register.
 
 for example:
 ```yml
