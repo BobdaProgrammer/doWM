@@ -13,6 +13,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/jezek/xgb"
@@ -476,9 +477,30 @@ func keysymToKeycode(conn *xgb.Conn, target xproto.Keysym) (xproto.Keycode, erro
 	return 0, fmt.Errorf("no keycode for keysym 0x%X", target)
 }
 
+func GetKeysym(input string) (xproto.Keysym, bool) {
+	// 1. Exact match (most important)
+	if ks, ok := Keysyms[input]; ok {
+		return ks, true
+	}
+
+	// 2. Try uppercase version
+	upper := strings.ToUpper(input)
+	if ks, ok := Keysyms[upper]; ok {
+		return ks, true
+	}
+
+	// 3. Try lowercase version
+	lower := strings.ToLower(input)
+	if ks, ok := Keysyms[lower]; ok {
+		return ks, true
+	}
+
+	return 0, false
+}
+
 // gets keycode of key and sets it, then tells the X server to notify us when this keybind is pressed.
 func (wm *WindowManager) createKeybind(kb *Keybind) {
-	keysym, ok := Keysyms[kb.Key]
+	keysym, ok := GetKeysym(kb.Key)
 	if !ok {
 		return
 	}
