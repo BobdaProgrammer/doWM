@@ -427,24 +427,26 @@ func getKeycodeForKeysym(conn *xgb.Conn, keysym uint32) xproto.Keycode {
 }
 func getKeycodesForKeysym(conn *xgb.Conn, keysym uint32) []xproto.Keycode {
 	setup := xproto.Setup(conn)
-	firstKeycode := setup.MinKeycode
-	lastKeycode := setup.MaxKeycode
-	count := lastKeycode - firstKeycode + 1
+	first := int(setup.MinKeycode)
+	last := int(setup.MaxKeycode)
+	count := last - first + 1
 
-	keymap, err := xproto.GetKeyboardMapping(conn, firstKeycode, uint8(count)).Reply()
+	keymap, err := xproto.GetKeyboardMapping(conn, setup.MinKeycode, uint8(count)).Reply()
 	if err != nil {
 		slog.Error("failed to get keyboard mapping", "error", err)
 		return nil
 	}
 
-	targetKeysym := xproto.Keysym(keysym)
+	target := xproto.Keysym(keysym)
+	kpk := int(keymap.KeysymsPerKeycode)
 	var keycodes []xproto.Keycode
-	for kc := firstKeycode; kc <= lastKeycode; kc++ {
-		offset := int(kc-firstKeycode) * int(keymap.KeysymsPerKeycode)
-		for i := range int(keymap.KeysymsPerKeycode) {
-			if offset+i < len(keymap.Keysyms) && keymap.Keysyms[offset+i] == targetKeysym {
-				keycodes = append(keycodes, kc)
-				break // only need to find the keysym once per keycode
+
+	for kc := first; kc <= last; kc++ {
+		offset := (kc - first) * kpk
+		for i := range kpk {
+			if keymap.Keysyms[offset+i] == target {
+				keycodes = append(keycodes, xproto.Keycode(kc))
+				break
 			}
 		}
 	}
@@ -475,30 +477,19 @@ func keysymToKeycode(conn *xgb.Conn, target xproto.Keysym) (xproto.Keycode, erro
 }
 
 // gets keycode of key and sets it, then tells the X server to notify us when this keybind is pressed.
-func (wm *WindowManager) createKeybind(kb *Keybind) Keybind {
+func (wm *WindowManager) createKeybind(kb *Keybind) {
 	keysym, ok := Keysyms[kb.Key]
 	if !ok {
-		return Keybind{
-			Keycode: 0,
-			Key:     "",
-			Shift:   false,
-			Exec:    "",
-		}
+		return
 	}
 	KeyCodes := getKeycodesForKeysym(wm.conn, uint32(keysym))
-	for i, KeyCode := range KeyCodes {
+	for _, KeyCode := range KeyCodes {
 		keybind := *kb
 		keybind.Keycode = uint32(KeyCode)
 		wm.grabKey(keybind, KeyCode)
 
-		if i == 0 {
-			kb = &keybind
-		} else {
-			wm.config.Keybinds = append(wm.config.Keybinds, keybind)
-		}
+		wm.config.Keybindings = append(wm.config.Keybindings, keybind)
 	}
-
-	return *kb
 }
 
 func (wm *WindowManager) grabKey(kb Keybind, KeyCode xproto.Keycode) {
@@ -571,8 +562,8 @@ func (wm *WindowManager) reload(focused xproto.ButtonPressEvent) {
 	wm.mod = mMask
 
 	// manage keybinds for keybinds in the config
-	for i, kb := range wm.config.Keybinds {
-		wm.config.Keybinds[i] = wm.createKeybind(&kb)
+	for _, kb := range wm.config.TempKeybinds {
+		wm.createKeybind(&kb)
 	}
 	wm.setKeyBinds()
 
@@ -809,12 +800,12 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 	wm.mod = mMask
 
 	// manage keybinds for keybinds in the config
-	for i, kb := range wm.config.Keybinds {
-		wm.config.Keybinds[i] = wm.createKeybind(&kb)
+	for _, kb := range wm.config.TempKeybinds {
+		wm.createKeybind(&kb)
 	}
 
 	wm.setKeyBinds()
-	fmt.Println(wm.config.Keybinds)
+	fmt.Println(wm.config.Keybindings)
 
 	// Only grab with Mod + left or right click (not plain Button1)
 	err = xproto.GrabButtonChecked(
@@ -1068,7 +1059,7 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 			// if mod key is down
 			if true {
 				// go through keybinds if the keybind matches up to the current event then continue
-				for _, kb := range wm.config.Keybinds {
+				for _, kb := range wm.config.Keybindings {
 					if ev.Detail == xproto.Keycode(kb.Keycode) {
 						fmt.Println(int(ev.Detail), kb.Key)
 					}
@@ -2907,29 +2898,27 @@ func (wm *WindowManager) Close() {
 
 func (wm *WindowManager) setKeyBinds() {
 	// workspace keybinds, ik not very idiomatic but its fine :)
-	wm.config.Keybinds = append(wm.config.Keybinds, []Keybind{
-		wm.createKeybind(&Keybind{Key: "0", Shift: false, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "1", Shift: false, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "2", Shift: false, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "3", Shift: false, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "4", Shift: false, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "5", Shift: false, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "6", Shift: false, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "7", Shift: false, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "8", Shift: false, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "9", Shift: false, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "0", Shift: true, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "1", Shift: true, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "2", Shift: true, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "3", Shift: true, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "4", Shift: true, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "5", Shift: true, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "6", Shift: true, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "7", Shift: true, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "8", Shift: true, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "9", Shift: true, Keycode: 0}),
-		wm.createKeybind(&Keybind{Key: "r", Shift: true, Keycode: 0, Role: "reload-config"}),
-	}...)
+	wm.createKeybind(&Keybind{Key: "0", Shift: false, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "1", Shift: false, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "2", Shift: false, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "3", Shift: false, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "4", Shift: false, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "5", Shift: false, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "6", Shift: false, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "7", Shift: false, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "8", Shift: false, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "9", Shift: false, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "0", Shift: true, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "1", Shift: true, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "2", Shift: true, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "3", Shift: true, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "4", Shift: true, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "5", Shift: true, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "6", Shift: true, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "7", Shift: true, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "8", Shift: true, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "9", Shift: true, Keycode: 0})
+	wm.createKeybind(&Keybind{Key: "r", Shift: true, Keycode: 0, Role: "reload-config"})
 }
 
 // The end.

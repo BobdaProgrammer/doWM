@@ -25,10 +25,11 @@ type Config struct {
 	BorderActive              uint32             `yaml:"active-border-color"`
 	ModKey                    string             `yaml:"mod-key"`
 	BorderWidth               uint32             `yaml:"border-width"`
-	Keybinds                  []Keybind          `yaml:"keybinds"`
-	AutoFullscreen            bool               `yaml:"auto-fullscreen"`
-	WorkspaceAutoBackAndForth bool               `yaml:"workspace-auto-back-and-forth"`
-	Monitors                  []MonitorConfig    `yaml:"monitors"`
+	TempKeybinds              []Keybind          `yaml:"keybinds"`
+	Keybindings               []Keybind
+	AutoFullscreen            bool            `yaml:"auto-fullscreen"`
+	WorkspaceAutoBackAndForth bool            `yaml:"workspace-auto-back-and-forth"`
+	Monitors                  []MonitorConfig `yaml:"monitors"`
 }
 
 func (wm *WindowManager) configListener() {
@@ -91,7 +92,8 @@ func (wm *WindowManager) createConfig(auto bool) Config {
 		ModKey:                    "Mod1",
 		BorderUnactive:            0x8bd5ca,
 		BorderActive:              0xa6da95,
-		Keybinds:                  []Keybind{},
+		TempKeybinds:              []Keybind{},
+		Keybindings:               []Keybind{},
 		lyts:                      createLayouts(),
 		Layouts:                   []map[int][]Layout{},
 		StartTiling:               false,
