@@ -26,6 +26,7 @@ import (
 
 // for moving and resizing, basically the window that will be moved/resized
 var start xproto.ButtonPressEvent
+var lastTilingResizeEvent xproto.MotionNotifyEvent = xproto.MotionNotifyEvent{RootX: -1, RootY: -1}
 var attr *xproto.GetGeometryReply
 
 // Mod key mask
@@ -996,6 +997,7 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 				}
 			}
 			start.Child = 0
+			lastTilingResizeEvent = xproto.MotionNotifyEvent{RootX: -1, RootY: -1}
 			xproto.AllowEvents(wm.conn, xproto.AllowReplayPointer, xproto.TimeCurrentTime)
 		case xproto.MotionNotifyEvent:
 			// if we have the mouse down and we are holding the mod key, and if we are not tiling and the window is not
@@ -1023,6 +1025,28 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 				fmt.Println(start.Detail)
 				if start.Detail == xproto.ButtonIndex3 {
 					if wm.currMonitor.CurrWorkspace.tiling {
+						lastx := lastTilingResizeEvent.RootX
+						lasty := lastTilingResizeEvent.RootY
+						fmt.Println(lastTilingResizeEvent.RootX, lastTilingResizeEvent.RootY)
+						if lastTilingResizeEvent.RootX == -1 {
+							lastx = start.RootX
+							lasty = start.RootY
+						}
+						tilingxdiff := ev.RootX - lastx
+						tilingydiff := ev.RootY - lasty
+						fmt.Println("TILING RESIZE===================", tilingxdiff, tilingydiff)
+						xincrease := true
+						if tilingxdiff < 0 {
+							xincrease = false
+						}
+						wm.resizeTiledX(xincrease, ev.Child, int(math.Abs(float64(tilingxdiff))))
+
+						yincrease := true
+						if tilingydiff < 0 {
+							yincrease = false
+						}
+						wm.resizeTiledY(yincrease, ev.Child, int(math.Abs(float64(tilingydiff))))
+						lastTilingResizeEvent = ev
 						break
 					}
 					Xoffset = attr.X
@@ -1099,7 +1123,7 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 								if err := wm.pointerToWindow(ev.Child); err != nil {
 									slog.Error("Couldn't move pointer to window", "error:", err)
 								}
-								if !wm.resizeTiledX(true, ev) {
+								if !wm.resizeTiledX(true, ev.Child, -1) {
 									break
 								}
 							} else {
@@ -1118,7 +1142,7 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 								if err := wm.pointerToWindow(ev.Child); err != nil {
 									slog.Error("Couldn't move pointer to window", "error:", err)
 								}
-								if !wm.resizeTiledX(false, ev) {
+								if !wm.resizeTiledX(false, ev.Child, -1) {
 									break
 								}
 							} else {
@@ -1139,7 +1163,7 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 								if err := wm.pointerToWindow(ev.Child); err != nil {
 									slog.Error("Couldn't move pointer to window", "error:", err)
 								}
-								if !wm.resizeTiledY(true, ev) {
+								if !wm.resizeTiledY(true, ev.Child, -1) {
 									break
 								}
 							} else {
@@ -1158,7 +1182,7 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 								if err := wm.pointerToWindow(ev.Child); err != nil {
 									slog.Error("Couldn't move pointer to window", "error:", err)
 								}
-								if !wm.resizeTiledY(false, ev) {
+								if !wm.resizeTiledY(false, ev.Child, -1) {
 									break
 								}
 							} else {
@@ -1489,8 +1513,11 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 	}
 }
 
-func (wm *WindowManager) resizeTiledX(increase bool, ev xproto.KeyPressEvent) bool { //nolint:unparam
-	geom, err := xproto.GetGeometry(wm.conn, xproto.Drawable(ev.Child)).Reply()
+func (wm *WindowManager) resizeTiledX(increase bool, child xproto.Window, resize int) bool { //nolint:unparam
+	if resize == -1 {
+		resize = int(wm.config.Resize)
+	}
+	geom, err := xproto.GetGeometry(wm.conn, xproto.Drawable(child)).Reply()
 	if err != nil {
 		return false
 	}
@@ -1514,22 +1541,22 @@ func (wm *WindowManager) resizeTiledX(increase bool, ev xproto.KeyPressEvent) bo
 		// if diff between ends of windows it less than five, they are same column
 		if math.Abs(float64((X+W)-(winX+winW))) <= 10 {
 			if increase {
-				winW += uint16(wm.config.Resize)
+				winW += uint16(resize)
 			} else {
-				winW -= uint16(wm.config.Resize)
+				winW -= uint16(resize)
 			}
 			fmt.Println(winW)
 		} else if math.Abs(float64(int(winX)-(int(X)+int(W)))) <= 10 {
 			if increase {
-				winX += uint16(wm.config.Resize)
-				winW -= uint16(wm.config.Resize)
+				winX += uint16(resize)
+				winW -= uint16(resize)
 				if winW < 50 {
 					ok = false
 					break
 				}
 			} else {
-				winX -= uint16(wm.config.Resize)
-				winW += uint16(wm.config.Resize)
+				winX -= uint16(resize)
+				winW += uint16(resize)
 				if W < 50 {
 					ok = false
 					break
@@ -1555,8 +1582,11 @@ func (wm *WindowManager) resizeTiledX(increase bool, ev xproto.KeyPressEvent) bo
 	return false
 }
 
-func (wm *WindowManager) resizeTiledY(increase bool, ev xproto.KeyPressEvent) bool { //nolint:unparam
-	geom, err := xproto.GetGeometry(wm.conn, xproto.Drawable(ev.Child)).Reply()
+func (wm *WindowManager) resizeTiledY(increase bool, child xproto.Window, resize int) bool { //nolint:unparam
+	if resize == -1 {
+		resize = int(wm.config.Resize)
+	}
+	geom, err := xproto.GetGeometry(wm.conn, xproto.Drawable(child)).Reply()
 	if err != nil {
 		return false
 	}
@@ -1580,22 +1610,22 @@ func (wm *WindowManager) resizeTiledY(increase bool, ev xproto.KeyPressEvent) bo
 		// if diff between ends of windows it less than five, they are same column
 		if math.Abs(float64((int(Y)+int(H))-(int(winY)+int(winH)))) <= 10 {
 			if increase {
-				winH += uint16(wm.config.Resize)
+				winH += uint16(resize)
 			} else {
-				winH -= uint16(wm.config.Resize)
+				winH -= uint16(resize)
 			}
 			fmt.Println(winW)
 		} else if math.Abs(float64(int(winY)-(int(Y)+int(H)))) <= 10 {
 			if increase {
-				winY += uint16(wm.config.Resize)
-				winH -= uint16(wm.config.Resize)
+				winY += uint16(resize)
+				winH -= uint16(resize)
 				if winH < 50 {
 					ok = false
 					break
 				}
 			} else {
-				winY -= uint16(wm.config.Resize)
-				winH += uint16(wm.config.Resize)
+				winY -= uint16(resize)
+				winH += uint16(resize)
 				if H < 50 {
 					ok = false
 					break
