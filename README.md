@@ -219,4 +219,6 @@ doWM supports multiple monitors and you can see how to configure them in the con
 - [x] startup commands
 - [x] picom support
 - [x] multi monitor support
+- [x] XF86 key support
+- [x] resize with mouse in tiling
 - [ ] auto update monitors if new one is plugged in
