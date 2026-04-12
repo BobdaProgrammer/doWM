@@ -496,6 +496,13 @@ func GetKeysym(input string) (xproto.Keysym, bool) {
 		return ks, true
 	}
 
+	if len(input) > 1 {
+		firstLetterUpper := strings.ToUpper(string(input[0])) + input[1:]
+		if ks, ok := Keysyms[firstLetterUpper]; ok {
+			return ks, true
+		}
+	}
+
 	return 0, false
 }
 
