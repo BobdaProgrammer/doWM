@@ -190,6 +190,8 @@ layouts:
 # - focus-window-right = focus the next window in a tiling layout
 # - focus-workspace-left = focus the previous workspace
 # - focus-workspace-right = focus the next workspace
+# - focus-next-monitor = focus next monitor
+# - focus-previous-monitor = focus-previos-monitor
 # - reload-config = reload the config (not autostart.sh)
 # - increase-gap = increase the gap between tiling windows (not permanent so resets next session)
 # - decrease gap = decrease the gap between tiling windows (also not permanent)
@@ -250,6 +252,12 @@ keybinds:
   - key: "right"
     shift: false
     role: "focus-window-right"
+  - key: "up"
+    shift: false
+    role: "focus-next-monitor"
+  - key: "down"
+    shift: false
+    role: "focus-previous-monitor"
   - key: "r"
     shift: true
     role: "reload-config"

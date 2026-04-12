@@ -714,6 +714,13 @@ func (wm *WindowManager) pointerToWindow(window xproto.Window) error {
 		Check()
 }
 
+func (wm *WindowManager) pointerToMonitor(mon *Monitor) error {
+	midx := mon.X + int16(mon.Width/2)
+	midy := mon.Y + int16(mon.Height/2)
+
+	return xproto.WarpPointerChecked(wm.conn, 0, xproto.Setup(wm.conn).DefaultScreen(wm.conn).Root, 0, 0, 0, 0, midx, midy).Check()
+}
+
 // Run runs the window manager.
 func (wm *WindowManager) Run() { //nolint:cyclop
 	fmt.Println("window manager up and running")
@@ -1372,6 +1379,40 @@ func (wm *WindowManager) Run() { //nolint:cyclop
 							wm.switchWorkspace(wm.currMonitor.workspaceIndex - 1)
 						case "focus-workspace-right":
 							wm.switchWorkspace(wm.currMonitor.workspaceIndex + 1)
+						case "focus-next-monitor":
+							//Switch to next monitor along
+							index := -1
+							for i := range wm.monitors {
+								if &wm.monitors[i] == wm.currMonitor {
+									index = i + 1
+									if i == len(wm.monitors)-1 {
+										index = 0
+									}
+									break
+								}
+							}
+
+							if index != -1 {
+								mon := &wm.monitors[index]
+								wm.pointerToMonitor(mon)
+							}
+						case "focus-previous-monitor":
+							//Switch to previous monitor
+							index := -1
+							for i := range wm.monitors {
+								if &wm.monitors[i] == wm.currMonitor {
+									index = i - 1
+									if i == 0 {
+										index = len(wm.monitors) - 1
+									}
+									break
+								}
+							}
+
+							if index != -1 {
+								mon := &wm.monitors[index]
+								wm.pointerToMonitor(mon)
+							}
 						case "reload-config":
 							cfg := wm.createConfig(false)
 							wm.config = cfg

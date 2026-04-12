@@ -163,6 +163,8 @@ each keybind either executes a command or plays a role in the wm. Here are all t
 - focus-window-right (focus the window to the right in tiling mode)
 - focus-workspace-left (focus the workspace to the left)
 - focus-workspace-right (focus the workspace to the right)
+- focus-next-monitor (focus the next monitor)
+- focus-previous-monitor (focus the previous monitor)
 - reload-config (reload doWM.yml)
 - increase-gap (increase gap between windows in tiling temporarily - reset next session)
 - decrease-gap (decrease gap between windows in tiling, also temporary)
