@@ -199,9 +199,6 @@ For an example config, look at [/exampleConfig](https://github.com/BobdaProgramm
 ## Monitors
 doWM supports multiple monitors and you can see how to configure them in the configuration section. Each monitor has 10 workspaces and are independent of the other monitors unless you drag a window between them, it will then move it to the other monitor.
 
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=BobdaProgrammer/doWM&type=Timeline)](https://www.star-history.com/#BobdaProgrammer/doWM&Timeline)
 
 ## progress
 - [x] move/resize
